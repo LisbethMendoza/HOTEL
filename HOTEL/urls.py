@@ -29,16 +29,9 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', include('usuario.urls')),  
-    path('index/', include('usuario.urls')),  
+    path('index/', include('usuario.urls')),
+    path('habitaciones/', include('habitaciones.urls')),  
     path('', RedirectView.as_view(url='login/', permanent=False)),  
 ]
 
 
-'------------------------HABITACIONES---------------------------------------'
-from django.contrib import admin
-from django.urls import path, include
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('habitaciones/', include('habitaciones.urls')),  # Incluye las URLs de la app habitaciones
-]

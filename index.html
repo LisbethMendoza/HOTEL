@@ -94,21 +94,21 @@
         <!-- consulta.html -->
         <section id="consulta">
             <h2>Consulta de Habitaciones Disponibles</h2>
-            <form id="consulta-form" method="post">
+            <form id="consulta-form" method="post" action="{% url 'consulta_habitaciones' %}">
                 {% csrf_token %}
                 <label for="tipo-habitacion">Tipo de Habitación:</label>
                 <select id="tipo-habitacion" name="tipo_habitacion" required>
                     <option value="" disabled selected>Seleccione una opción</option>
-                    <option value="simple">Simple</option>
-                    <option value="doble">Doble</option>
-                    <option value="suite">Suite</option>
+                    <option value="Simple">Simple</option>
+                    <option value="Doble">Doble</option>
+                    <option value="Suite">Suite</option>
                 </select>
         
                 <label for="precio-habitacion">Precio de la Habitación:</label>
                 <input type="text" id="precio-habitacion" readonly placeholder="$0.00" value="{% if habitaciones %}{{ habitaciones.first.precio_habitacion }}{% endif %}">
         
                 <label for="numero-habitacion">Número de Habitación Disponible:</label>
-                <input type="text" id="numero-habitacion" readonly value="{% if habitaciones %}{{ habitaciones.first.numero_habitacion }}{% else %}No disponible{% endif %}">
+                <input type="text" id="numero-habitacion" readonly value="{% if numeros_habitaciones %}{{ numeros_habitaciones }}{% else %}No disponible{% endif %}">
         
                 <label for="cantidad-habitaciones">Cantidad de Habitaciones Disponibles:</label>
                 <input type="text" id="cantidad-habitaciones" readonly value="{{ habitaciones.count }}">

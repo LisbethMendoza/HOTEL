@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import consulta_habitaciones_view
+from .views import consulta_habitaciones
 
 urlpatterns = [
-    path('consulta/', consulta_habitaciones_view, name='consulta_habitaciones'),
+    path('consulta-habitaciones/', consulta_habitaciones, name='consulta_habitaciones'),
 ]
+
