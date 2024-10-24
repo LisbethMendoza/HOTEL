@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservas Imprevistas</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,19 +56,37 @@
             background-color: #0056b3;
         }
 
-        /* Botón de Pago en la esquina superior derecha */
+        .boton-guardar, .boton-servicios, .boton-pago {
+            margin: 0 10px;           
+            padding: 10px 20px;       
+            color: white;             
+        }
+
+        .boton-container {
+
+            display: flex;              
+            justify-content: center;    
+            margin-top: 20px;    
+            left: 30px;
+        }
+        
         .boton-pago {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            bottom: 20px;
+            left: 390px;
             padding: 10px 20px;
-            background-color: #28a745;
+            background-color: #17b824;
+            color: white;
+        }
+        .boton-guardar {
+            bottom: 20px;
+            left: 390px;
+            padding: 10px 20px;
+            background-color: #63c2c9;
             color: white;
         }
 
-        /* Botón de Servicios Extra en la esquina inferior derecha */
+        
         .boton-servicios {
-            position: absolute;
             bottom: 20px;
             right: 20px;
             padding: 10px 20px;
@@ -76,7 +94,7 @@
             color: white;
         }
 
-        /* Estilos para el campo de número de habitación y cantidad disponible (texto no editable) */
+        
         #numero-habitacion, #cantidad-habitaciones {
             background-color: #e9ecef;
             cursor: not-allowed;
@@ -103,16 +121,19 @@
                     <option value="Doble">Doble</option>
                     <option value="Suite">Suite</option>
                 </select>
-        
+            
                 <label for="precio-habitacion">Precio de la Habitación:</label>
-                <input type="text" id="precio-habitacion" readonly placeholder="$0.00" value="{% if habitaciones %}{{ habitaciones.first.precio_habitacion }}{% endif %}">
-        
+                <input type="text" id="precio-habitacion" readonly placeholder="$0.00" 
+                       value="{% if habitaciones_form_1 %}{{ habitaciones_form_1.first.precio_habitacion }}{% endif %}">
+            
                 <label for="numero-habitacion">Número de Habitación Disponible:</label>
-                <input type="text" id="numero-habitacion" readonly value="{% if numeros_habitaciones %}{{ numeros_habitaciones }}{% else %}No disponible{% endif %}">
-        
+                <input type="text" id="numero-habitacion" readonly 
+                       value="{% if numeros_habitaciones_form_1 %}{{ numeros_habitaciones_form_1 }}{% else %}No disponible{% endif %}">
+            
                 <label for="cantidad-habitaciones">Cantidad de Habitaciones Disponibles:</label>
-                <input type="text" id="cantidad-habitaciones" readonly value="{{ habitaciones.count }}">
-        
+                <input type="text" id="cantidad-habitaciones" readonly 
+                       value="{% if habitaciones_form_1 %}{{ habitaciones_form_1.count }}{% else %}0{% endif %}">
+            
                 <button type="submit" id="buscar-habitaciones">Buscar Habitaciones</button>
             </form>
         </section>
@@ -120,40 +141,124 @@
         <!-- Crear Reserva -->
         <section id="crear-reserva">
             <h2>Crear Reserva</h2>
-            <form id="reserva-form">
-                <label for="nombre-cliente">Nombre del Cliente:</label>
-                <input type="text" id="nombre-cliente" required>
+            <form id="reserva-form" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="nombre-cliente">Nombre del Cliente:</label>
+                    <input type="text" name="nombre_cliente" id="nombre-cliente" placeholder="Ingrese el nombre" required>
+                </div>
+        
+                <div class="form-group">
+                    <label for="cantidad-personas">Cantidad de Personas:</label>
+                    <input type="number" name="cantidad_personas" id="cantidad-personas" placeholder="Ej. 2" required>
+                </div>
+        
 
-                <label for="cantidad-personas">Cantidad de Personas:</label>
-                <input type="number" id="cantidad-personas" min="1" required>
 
-                <label for="cantidad-habitaciones-reservar">Cantidad de Habitaciones a Reservar:</label>
-                <input type="number" id="cantidad-habitaciones-reservar" min="1" required>
 
-                <label for="numero-habitaciones-asignadas">Número de Habitaciones Asignadas:</label>
-                <input type="text" id="numero-habitaciones-asignadas" placeholder="Ej. 101, 102" required>
-
-                <label for="habitacion-seleccionada">Habitación Seleccionada:</label>
-                <input type="text" id="habitacion-seleccionada" placeholder="Ej. Suite" required>
-
-                <label for="fecha-entrada">Fecha de Entrada:</label>
-                <input type="date" id="fecha-entrada" required>
+                <form id="consulta-habitaciones-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="tipo-habitacion-consulta">Tipo de Habitación:</label>
+                        <select name="tipo_habitacion_consulta" id="tipo-habitacion-consulta" required>
+                            <option value="">Seleccione un tipo</option>
+                            <option value="Simple" {% if tipo_habitacion == 'Simple' %}selected{% endif %}>Simple</option>
+                            <option value="Doble" {% if tipo_habitacion == 'Doble' %}selected{% endif %}>Doble</option>
+                            <option value="Suite" {% if tipo_habitacion == 'Suite' %}selected{% endif %}>Suite</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad-habitaciones-consulta">Cantidad de Habitaciones a Reservar:</label>
+                        <input type="number" name="cantidad_habitaciones_consulta" id="cantidad-habitaciones-consulta"
+                               placeholder="Ej. 1"
+                               value="{{ cantidad_habitaciones }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="numero-habitaciones-consulta">Número de Habitaciones Asignadas:</label>
+                        <input type="text" name="numero_habitaciones_consulta" id="numero-habitaciones-consulta" 
+                               value="{% if numeros_habitaciones_asignadas %}{{ numeros_habitaciones_asignadas }}{% else %}No disponible{% endif %}" 
+                               readonly required>
+                    </div>
+                </form>
                 
-                <label for="fecha-salida">Fecha de Salida:</label>
-                <input type="date" id="fecha-salida" required>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('tipo-habitacion-consulta').addEventListener('change', enviarConsulta);
+                        document.getElementById('cantidad-habitaciones-consulta').addEventListener('input', enviarConsulta);
+                    
+                        function enviarConsulta() {
+                            const tipoHabitacion = document.getElementById('tipo-habitacion-consulta').value;
+                            const cantidadHabitaciones = document.getElementById('cantidad-habitaciones-consulta').value;
+                    
+                            if (tipoHabitacion && cantidadHabitaciones && cantidadHabitaciones > 0) {
+                                const xhr = new XMLHttpRequest();
+                                xhr.open('POST', '{% url "obtener_habitaciones_disponibles" %}', true);
+                                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                    
+                                xhr.onload = function() {
+                                    if (xhr.status === 200) {
+                                        const response = JSON.parse(xhr.responseText);
+                                        document.getElementById('numero-habitaciones-consulta').value = response.numeros_habitaciones_asignadas || "No disponible";
+                                    }
+                                };
+                    
+                                xhr.send(`tipo_habitacion_consulta=${tipoHabitacion}&cantidad_habitaciones_consulta=${cantidadHabitaciones}`);
+                            } else {
+                                document.getElementById('numero-habitaciones-consulta').value = "No disponible";
+                            }
+                        }
+                    });
+                    
 
-                <label for="total-pago">Total a Pagar:</label>
-                <input type="text" id="total-pago" readonly placeholder="$0.00">
+                </script>
+                
+                
+                
+                
+                
+             
+               
+                
+                
+                
+                
+                
+                
+
+                
+
+
+
+
+                <div class="form-group">
+                    <label for="fecha-entrada">Fecha de Entrada:</label>
+                    <input type="date" name="fecha_entrada" id="fecha-entrada" required>
+                </div>
+        
+                <div class="form-group">
+                    <label for="fecha-salida">Fecha de Salida:</label>
+                    <input type="date" name="fecha_salida" id="fecha-salida" required>
+                </div>
+        
+                <div class="form-group">
+                    <label for="total-pago">Total a Pagar:</label>
+                    <input type="text" name="total_pago" id="total-pago" readonly placeholder="$0.00">
+                </div>
+        
+                <div class="boton-container">
+                    <button type="submit" id="guardar" class="boton-guardar">Guardar</button>
+                    <button type="button" id="servicios-extra" class="boton-servicios">Servicios Extra</button>
+                    <button type="button" id="pagar-habitacion" class="boton-pago">Pagar</button>
+                </div>
             </form>
-
-            <!-- Botón para Pago -->
-            <button id="pagar-habitacion" class="boton-pago">Pagar</button>
-
-            <!-- Botón de Servicios Extra -->
-            <button id="servicios-extra" class="boton-servicios">Servicios Extra</button>
-        </section>
+        </section>        
     </div>
 
+
+    
     <!-- Mini Factura -->
     <section id="factura" style="display:none;">
         <h2>Factura</h2>
@@ -161,5 +266,25 @@
         <button id="pagar">Confirmar y Pagar</button>
     </section>
 
-</body>
+
+
+
+
+
+
+
+<!-- JavaScrip para las interacciones-->
+
+
+
+
+
+
+
+    
+
+
+        
+
+</body>    
 </html>

@@ -14,11 +14,6 @@
             margin: 0;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
         form {
             background-color: #ffffff;
             padding: 20px;
@@ -26,6 +21,11 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             width: 300px;
             text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
         }
 
         label {
@@ -75,12 +75,12 @@
     </style>
 </head>
 <body>
-    <h1>Iniciar Sesión</h1>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>  <!-- Muestra el error si existe -->
-    {% endif %}
     <form method="POST" action="{% url 'login' %}">
+        <h1>Iniciar Sesión</h1>
         {% csrf_token %}
+        {% if error %}
+            <p>{{ error }}</p>  <!-- Muestra el error si existe -->
+        {% endif %}
         <label for="username">Nombre:</label>
         <input type="text" id="username" name="username" required>
         <br>
