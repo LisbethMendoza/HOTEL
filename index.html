@@ -141,21 +141,30 @@
         <!-- Crear Reserva -->
         <section id="crear-reserva">
             <h2>Crear Reserva</h2>
-            <form id="reserva-form" method="POST">
+            <form id="reserva-form" method="POST" action="{% url 'calculo_total' %}" >
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="nombre-cliente">Nombre del Cliente:</label>
                     <input type="text" name="nombre_cliente" id="nombre-cliente" placeholder="Ingrese el nombre" required>
                 </div>
-        
+            
                 <div class="form-group">
                     <label for="cantidad-personas">Cantidad de Personas:</label>
                     <input type="number" name="cantidad_personas" id="cantidad-personas" placeholder="Ej. 2" required>
                 </div>
-        
-
-
-
+                <div class="form-group">
+                    <label for="fecha-entrada">Fecha de Entrada:</label>
+                    <input type="date" name="fecha_entrada" id="fecha-entrada" required>
+                </div>
+            
+                <div class="form-group">
+                    <label for="fecha-salida">Fecha de Salida:</label>
+                    <input type="date" name="fecha_salida" id="fecha-salida" required>
+                </div>
+            
+               
+            </form>
+            
                 <form id="consulta-habitaciones-form">
                     {% csrf_token %}
                     <div class="form-group">
@@ -180,80 +189,20 @@
                                readonly required>
                     </div>
                 </form>
-                
-                
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        document.getElementById('tipo-habitacion-consulta').addEventListener('change', enviarConsulta);
-                        document.getElementById('cantidad-habitaciones-consulta').addEventListener('input', enviarConsulta);
-                    
-                        function enviarConsulta() {
-                            const tipoHabitacion = document.getElementById('tipo-habitacion-consulta').value;
-                            const cantidadHabitaciones = document.getElementById('cantidad-habitaciones-consulta').value;
-                    
-                            if (tipoHabitacion && cantidadHabitaciones && cantidadHabitaciones > 0) {
-                                const xhr = new XMLHttpRequest();
-                                xhr.open('POST', '{% url "obtener_habitaciones_disponibles" %}', true);
-                                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-                    
-                                xhr.onload = function() {
-                                    if (xhr.status === 200) {
-                                        const response = JSON.parse(xhr.responseText);
-                                        document.getElementById('numero-habitaciones-consulta').value = response.numeros_habitaciones_asignadas || "No disponible";
-                                    }
-                                };
-                    
-                                xhr.send(`tipo_habitacion_consulta=${tipoHabitacion}&cantidad_habitaciones_consulta=${cantidadHabitaciones}`);
-                            } else {
-                                document.getElementById('numero-habitaciones-consulta').value = "No disponible";
-                            }
-                        }
-                    });
-                    
 
-                </script>
-                
-                
-                
-                
-                
-             
-               
-                
-                
-                
-                
-                
-                
-
-                
-
-
-
-
-                <div class="form-group">
-                    <label for="fecha-entrada">Fecha de Entrada:</label>
-                    <input type="date" name="fecha_entrada" id="fecha-entrada" required>
-                </div>
-        
-                <div class="form-group">
-                    <label for="fecha-salida">Fecha de Salida:</label>
-                    <input type="date" name="fecha_salida" id="fecha-salida" required>
-                </div>
-        
-                <div class="form-group">
+                <div class="form-group" method="POST" action="{% url 'calculo_total' %}">
                     <label for="total-pago">Total a Pagar:</label>
-                    <input type="text" name="total_pago" id="total-pago" readonly placeholder="$0.00">
-                </div>
-        
+                    <input type="number" name="total_pago" id="total-pago" readonly placeholder="0.00" step="0.01" min="0" value="0">
+                </div>                
+                
+            
                 <div class="boton-container">
-                    <button type="submit" id="guardar" class="boton-guardar">Guardar</button>
+                    <button type="submit" id="guardar" class="boton-guardar" >Guardar</button>
                     <button type="button" id="servicios-extra" class="boton-servicios">Servicios Extra</button>
                     <button type="button" id="pagar-habitacion" class="boton-pago">Pagar</button>
                 </div>
-            </form>
+                
+  
         </section>        
     </div>
 
@@ -273,18 +222,120 @@
 
 
 
-<!-- JavaScrip para las interacciones-->
-
-
-
-
-
-
-
+<!-- JavaScrip para las interacciones de la consulta-->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('tipo-habitacion-consulta').addEventListener('change', enviarConsulta);
+        document.getElementById('cantidad-habitaciones-consulta').addEventListener('input', enviarConsulta);
+    
+        function enviarConsulta() {
+            const tipoHabitacion = document.getElementById('tipo-habitacion-consulta').value;
+            const cantidadHabitaciones = document.getElementById('cantidad-habitaciones-consulta').value;
+    
+            if (tipoHabitacion && cantidadHabitaciones && cantidadHabitaciones > 0) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "obtener_habitaciones_disponibles" %}', true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        document.getElementById('numero-habitaciones-consulta').value = response.numeros_habitaciones_asignadas || "No disponible";
+                    }
+                };
+    
+                xhr.send(`tipo_habitacion_consulta=${tipoHabitacion}&cantidad_habitaciones_consulta=${cantidadHabitaciones}`);
+            } else {
+                document.getElementById('numero-habitaciones-consulta').value = "No disponible";
+            }
+        }
+    });
     
 
+</script>
 
+<!-- Para el calculo -->
+<script>
+    document.getElementById('consulta-habitaciones-form').addEventListener('input', function() {
+        const tipoHabitacion = document.getElementById('tipo-habitacion-consulta').value;
+        const cantidadHabitaciones = document.getElementById('cantidad-habitaciones-consulta').value;
+        const fechaEntrada = document.getElementById('fecha-entrada').value;
+        const fechaSalida = document.getElementById('fecha-salida').value;
+    
+        if (tipoHabitacion && cantidadHabitaciones && fechaEntrada && fechaSalida) {
+            fetch("{% url 'calculo_total' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: new URLSearchParams({
+                    'tipo_habitacion_consulta': tipoHabitacion,
+                    'cantidad_habitaciones_consulta': cantidadHabitaciones,
+                    'fecha_entrada': fechaEntrada,
+                    'fecha_salida': fechaSalida,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.total_pago) {
+                    document.getElementById('total-pago').value = data.total_pago;
+                } else {
+                    alert(data.error || "Error al calcular el total.");
+                }
+            })
+            .catch(error => {
+                console.error("Error en la solicitud:", error);
+            });
+        }
+    });
+    </script>
+
+
+    <!-- Para el boton GUardar -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#guardar').click(function(e) {
+                e.preventDefault();  // Evita el comportamiento por defecto del botón
+    
+                // Recolectar datos del formulario
+                var data = {
+                    'nombre_cliente': $('#nombre-cliente').val(),
+                    'cantidad_personas': $('#cantidad-personas').val(),
+                    'cantidad_habitaciones_consulta': $('#cantidad-habitaciones-consulta').val(),
+                    'tipo_habitacion_consulta': $('#tipo-habitacion-consulta').val(),
+                    'numero_habitaciones_consulta': $('#numero-habitaciones-consulta').val(),
+                    'fecha_entrada': $('#fecha-entrada').val(),
+                    'fecha_salida': $('#fecha-salida').val(),
+                    'total_pago': $('#total-pago').val(),
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Incluir el token CSRF
+                };
+    
+                // Enviar los datos usando AJAX
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "insert" %}',  // URL de la vista de inserción
+                    data: data,
+                    success: function(response) {
+                        // Aquí puedes manejar la respuesta, como redirigir o mostrar un mensaje
+                        window.location.href = '{% url "index" %}';  // Redirigir a la página de reservas
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al guardar la reserva:', error);
+                        // Manejo de errores
+                    }
+                });
+            });
+        });
+    </script>
+    
+    
         
+    
+
 
 </body>    
 </html>
