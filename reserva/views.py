@@ -43,9 +43,9 @@ def calculo_total(request):
 from django.shortcuts import render, redirect
 from .models import Reserva
 
+
 def insert(request):
     if request.method == 'POST':
-        # Obtener datos del formulario
         nombre_cliente = request.POST.get('nombre_cliente')
         cantidad_personas = request.POST.get('cantidad_personas')
         cantidad_habitaciones_reservar = request.POST.get('cantidad_habitaciones_consulta')
@@ -54,8 +54,8 @@ def insert(request):
         fecha_entrada = request.POST.get('fecha_entrada')
         fecha_salida = request.POST.get('fecha_salida')
         total_pago = request.POST.get('total_pago')
+        cedula = request.POST.get('cedula_cliente')
 
-        # Crear una nueva reserva
         nueva_reserva = Reserva(
             nombre_cliente=nombre_cliente,
             cantidad_personas=cantidad_personas,
@@ -65,12 +65,21 @@ def insert(request):
             fecha_entrada=fecha_entrada,
             fecha_salida=fecha_salida,
             total_pago=total_pago,
+            cedula=cedula,
         )
-        nueva_reserva.save()  # Guardar la reserva en la base de datos
+        nueva_reserva.save()
 
-        return redirect('index')  # Redirige de vuelta al formulario (index.html)
+        habitaciones_asignadas = numero_habitaciones_asignadas.split(',')
+        for habitacion_numero in habitaciones_asignadas:
+            habitacion_numero = habitacion_numero.strip()  
+            habitacion = Habitacion.objects.filter(numero_habitacion=habitacion_numero).first()
+            if habitacion:
+                habitacion.disponible = False
+                habitacion.save()
+                
+        return redirect('index')
 
-    return render(request, 'index.html')  # Renderizar el formulario en caso de que no sea POST
+
 def index(request):
-    reservas = Reserva.objects.all()  # Obtener todas las reservas, si necesitas mostrar algo
+    reservas = Reserva.objects.all() 
     return render(request, 'index.html', {'reservas': reservas}) 
