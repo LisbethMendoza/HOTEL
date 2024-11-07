@@ -33,6 +33,8 @@ urlpatterns = [
     path('index/', include('usuario.urls')),
     path('habitaciones/', include('habitaciones.urls')),
     path('reserva/', include('reserva.urls')),
+    path('servicios/', include('servicios.urls')),
+    
    
     path('', RedirectView.as_view(url='login/', permanent=False)),  
 ]

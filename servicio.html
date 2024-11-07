@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios Extra</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        label {
+            margin-right: 10px;
+            font-weight: bold;
+            width: 150px; 
+        }
+        input[type="text"] {
+            flex: 1; 
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 150px; 
+            margin-right: 10px; 
+        }
+        .input-group .nomc {
+            max-width: 200px; 
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 600px) {
+            th, td {
+                font-size: 14px;
+                padding: 8px;
+            }
+            button {
+                font-size: 14px;
+            }
+            label {
+                width: auto; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Servicios Extra</h1>
+    <form method="POST">  
+        {% csrf_token %}
+        
+        <div class="input-group">
+            <label for="nombre_cliente">Nombre Cliente</label>
+            <input type="text" id="nombre_cliente" name="nombre_cliente" />
+            
+            <label for="cedula">Cédula</label>
+            <input type="text" id="cedula" name="cedula" />
+            
+            <label for="numero_habitaciones_asignadas">Habitaciones Asignadas</label>
+            <input type="text" id="numero_habitaciones_asignadas" name="numero_habitaciones_asignadas" readonly />
+            
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Seleccionar</th>
+                    <th>Servicio</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for servicio in servicios %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="servicios_seleccionados" value="{{ servicio.id }}">  <!-- El ID del servicio se usa como valor -->
+                    </td>
+                    <td>{{ servicio.servicio }}</td>
+                    <td>{{ servicio.description }}</td>
+                    <td>${{ servicio.precio }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No hay servicios disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Enviar</button>  
+    </form>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para buscar clientes
+            function buscarCliente() {
+                const nombreCliente = document.getElementById('nombre_cliente').value.toLowerCase();
+                const cedula = document.getElementById('cedula').value;
+        
+                // Hacer la solicitud Fetch para obtener los datos
+                fetch("{% url 'consulta' %}")  // Llamada a la vista 'consulta'
+                    .then(response => response.json())  // Convertir la respuesta a JSON
+                    .then(clientes => {
+                        let clienteEncontrado = null;
+        
+                        // Si el usuario escribió un nombre, buscamos por nombre
+                        if (nombreCliente) {
+                            clienteEncontrado = clientes.find(c => c.nombre_cliente.toLowerCase().includes(nombreCliente));
+                        }
+        
+                        // Si no se encuentra un cliente por nombre y se escribió una cédula, buscamos por cédula
+                        if (cedula && !clienteEncontrado) {
+                            clienteEncontrado = clientes.find(c => c.cedula.includes(cedula));
+                        }
+        
+                        // Si encontramos al cliente, autocompletamos los campos
+                        if (clienteEncontrado) {
+                            document.getElementById('nombre_cliente').value = clienteEncontrado.nombre_cliente;
+                            document.getElementById('cedula').value = clienteEncontrado.cedula;
+                            document.getElementById('numero_habitaciones_asignadas').value = clienteEncontrado.numero_habitaciones_asignadas;
+                        } else {
+                            // Si no se encuentra el cliente, limpiamos los campos
+                            document.getElementById('nombre_cliente').value = '';
+                            document.getElementById('cedula').value = '';
+                            document.getElementById('numero_habitaciones_asignadas').value = '';
+                        }
+                    })
+                    .catch(error => console.error('Error al obtener los datos:', error));
+            }
+        
+            // Detectar el evento "keydown" para el campo de "Nombre Cliente" o "Cédula"
+            document.getElementById('nombre_cliente').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevenir el envío del formulario
+                    buscarCliente();
+                }
+            });
+        
+            document.getElementById('cedula').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevenir el envío del formulario
+                    buscarCliente();
+                }
+            });
+        });
+        
+        
+    </script>
+    
+
+</body>
+</html>
