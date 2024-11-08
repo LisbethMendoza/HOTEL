@@ -83,3 +83,38 @@ def insert(request):
 def index(request):
     reservas = Reserva.objects.all() 
     return render(request, 'index.html', {'reservas': reservas}) 
+
+
+
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Reserva
+
+def consulta_reserva(request):
+    nombre_cliente = request.GET.get('nombre_cliente')
+    cedula_cliente = request.GET.get('cedula_cliente')
+
+    try:
+        if nombre_cliente:
+            reserva = Reserva.objects.get(nombre_cliente=nombre_cliente)
+        elif cedula_cliente:
+            reserva = Reserva.objects.get(cedula=cedula_cliente)
+        else:
+            return JsonResponse({'error': 'No se proporcionó nombre o cédula'}, status=400)
+
+        reserva_data = {
+            'nombre_cliente': reserva.nombre_cliente,
+            'cedula': reserva.cedula,
+            'cantidad_personas': reserva.cantidad_personas,
+            'cantidad_habitaciones_reservar': reserva.cantidad_habitaciones_reservar,
+            'tipo_habitacion': reserva.tipo_habitacion,
+            'numero_habitaciones_asignadas': reserva.numero_habitaciones_asignadas,
+            'fecha_entrada': reserva.fecha_entrada,
+            'fecha_salida': reserva.fecha_salida,
+            'total_pago': float(reserva.total_pago),
+        }
+        return JsonResponse(reserva_data)
+
+    except Reserva.DoesNotExist:
+        return JsonResponse({'error': 'No se encontró la reserva'}, status=404)

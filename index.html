@@ -335,7 +335,60 @@
         });
     </script>
     
-    
+   <!-- Para llamar los datos -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nombreInput = document.getElementById('nombre-cliente');
+            const cedulaInput = document.getElementById('cedula-cliente');
+        
+            function consultarReserva() {
+                const nombreCliente = nombreInput.value;
+                const cedulaCliente = cedulaInput.value;
+        
+                const url = new URL("{% url 'consulta_reserva' %}", window.location.origin);
+                if (nombreCliente) url.searchParams.append('nombre_cliente', nombreCliente);
+                if (cedulaCliente) url.searchParams.append('cedula_cliente', cedulaCliente);
+        
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            document.getElementById('nombre-cliente').value = data.nombre_cliente;
+                            document.getElementById('cedula-cliente').value = data.cedula;
+                            document.getElementById('cantidad-personas').value = data.cantidad_personas;
+                            document.getElementById('cantidad-habitaciones-consulta').value = data.cantidad_habitaciones_reservar;
+                            document.getElementById('tipo-habitacion-consulta').value = data.tipo_habitacion;
+                            document.getElementById('numero-habitaciones-consulta').value = data.numero_habitaciones_asignadas;
+                            document.getElementById('fecha-entrada').value = data.fecha_entrada;
+                            document.getElementById('fecha-salida').value = data.fecha_salida;
+                            document.getElementById('total-pago').value = data.total_pago;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al consultar la reserva:', error);
+                        alert('Hubo un error al realizar la consulta.');
+                    });
+            }
+        
+            // Escuchar el evento Enter en los campos de nombre o cédula
+            nombreInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    consultarReserva();
+                }
+            });
+        
+            cedulaInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    consultarReserva();
+                }
+            });
+        });
+        </script>
+        
     
     
 

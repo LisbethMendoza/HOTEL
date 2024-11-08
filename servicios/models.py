@@ -7,3 +7,5 @@ class ServicioExtra(models.Model):
 
     def __str__(self):
         return f"Servicio: {self.servicio} - Precio: ${self.precio}"
+
+

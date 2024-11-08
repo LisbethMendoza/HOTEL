@@ -12,3 +12,5 @@ def consulta(request):
     clientes = Reserva.objects.all().values('nombre_cliente', 'cedula', 'numero_habitaciones_asignadas')
 
     return JsonResponse(list(clientes), safe=False)
+
+
