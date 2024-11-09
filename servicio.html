@@ -204,51 +204,57 @@
             checkboxes.forEach(function(checkbox) {
                 serviciosSeleccionados.push(checkbox.value);
             });
-    
+        
             if (serviciosSeleccionados.length === 0) {
                 alert("Debe seleccionar al menos un servicio");
                 return;
             }
-    
+        
             // Realizar la solicitud para obtener el total
             fetch("{% url 'actualizar_total_pago' %}", {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
                 },
-                body: new URLSearchParams({
+                body: JSON.stringify({
                     'nombre_cliente': nombreCliente,
                     'servicios_seleccionados': serviciosSeleccionados
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error en la respuesta del servidor');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    alert('Total actualizado. Nuevo total: ' + data.total_pago);
-                    
                     // Actualizar el campo total_pago en el formulario (si existe)
-                    // Si tienes un campo de total en el formulario para mostrar el total, lo puedes hacer así:
                     document.getElementById("total_pago").value = data.total_pago;
-                    
-                    // Ahora puedes proceder a enviar el formulario
-                    document.querySelector('form').submit();
                 } else if (data.error) {
                     alert(data.error);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert("Hubo un error al actualizar el total.");
+                console.error("Error:", error);
+            })
+            .finally(() => {
+                // Recargar la página al final, sea cual sea el resultado
+                window.location.reload();
             });
         }
-    
-        // Asignar el evento de envío al formulario
+        
         document.querySelector("form").addEventListener("submit", function(event) {
-            event.preventDefault();  // Evitar el envío normal para procesar el total primero
+            event.preventDefault();  
             calcularYActualizarTotal();
         });
     </script>
+    
+    
+    
     
     
     

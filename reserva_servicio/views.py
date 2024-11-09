@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import ReservaServicio, ServicioExtra, Reserva
 from django.shortcuts import render
+import json
 
 @csrf_exempt
 def crear_reserva_servicio(request):
@@ -44,8 +45,9 @@ def crear_reserva_servicio(request):
 @csrf_exempt
 def actualizar_total_pago(request):
     if request.method == "POST":
-        nombre_cliente = request.POST.get("nombre_cliente")
-        servicios_seleccionados = request.POST.getlist("servicios_seleccionados")
+        data = json.loads(request.body)
+        nombre_cliente = data.get("nombre_cliente")
+        servicios_seleccionados = data.get("servicios_seleccionados")
 
         if not nombre_cliente:
             return JsonResponse({"error": "El nombre del cliente es requerido"}, status=400)
@@ -65,10 +67,9 @@ def actualizar_total_pago(request):
 
         total_servicios = sum(servicio.precio for servicio in servicios)
 
-        # Actualizar el total_pago de la reserva
         reserva.total_pago += total_servicios
         reserva.save()
 
-        return JsonResponse({"success": "Total actualizado", "total_pago": reserva.total_pago})
+        return render(request, 'servicio.html', {'servicios': ServicioExtra.objects.all(), 'servicios_seleccionados': servicios})
 
     return JsonResponse({"error": "Método no permitido"}, status=405)
