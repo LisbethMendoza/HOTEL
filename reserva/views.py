@@ -2,6 +2,26 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from habitaciones.models import Habitacion
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Reserva
+
+
+def cancelar_reserva(request):
+    if request.method == 'POST':
+        nombre_cliente = request.POST.get('nombre_cliente')
+        fecha_salida = request.POST.get('fecha_salida')
+
+        try:
+            reserva = Reserva.objects.get(nombre_cliente=nombre_cliente, fecha_salida=fecha_salida)
+            reserva.estado = 'Inactiva'  # Cambiar el estado a inactivo
+            reserva.save()
+            return JsonResponse({'status': 'inactiva', 'mensaje': 'Reserva cambiada a inactiva'})
+
+        except Reserva.DoesNotExist:
+            # Si no existe la reserva, no se hace nada, solo limpiamos los campos
+            return JsonResponse({'status': 'no_reserva', 'mensaje': 'No se encontró la reserva'})
+    return JsonResponse({'status': 'error', 'mensaje': 'Error al procesar la solicitud'})
 
 def calculo_total(request):
     if request.method == 'POST':
@@ -86,20 +106,15 @@ def index(request):
 
 
 
-
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from .models import Reserva
-
 def consulta_reserva(request):
     nombre_cliente = request.GET.get('nombre_cliente')
     cedula_cliente = request.GET.get('cedula_cliente')
 
     try:
         if nombre_cliente:
-            reserva = Reserva.objects.get(nombre_cliente=nombre_cliente)
+            reserva = Reserva.objects.get(nombre_cliente=nombre_cliente, estado='Activa')
         elif cedula_cliente:
-            reserva = Reserva.objects.get(cedula=cedula_cliente)
+            reserva = Reserva.objects.get(cedula=cedula_cliente, estado='Activa')
         else:
             return JsonResponse({'error': 'No se proporcionó nombre o cédula'}, status=400)
 
@@ -117,4 +132,10 @@ def consulta_reserva(request):
         return JsonResponse(reserva_data)
 
     except Reserva.DoesNotExist:
-        return JsonResponse({'error': 'No se encontró la reserva'}, status=404)
+        return JsonResponse({'error': 'No se encontró la reserva o está inactiva'}, status=404)
+
+
+def updatesalida(request):
+    today = timezone.now().date() 
+    reservas_actualizadas = Reserva.objects.filter(fecha_salida__lte=today, estado="Activa").update(estado="Inactiva")
+    return JsonResponse({'actualizadas': reservas_actualizadas})

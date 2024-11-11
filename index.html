@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservas Imprevistas</title>
-    <link rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,6 +98,23 @@
         #numero-habitacion, #cantidad-habitaciones {
             background-color: #e9ecef;
             cursor: not-allowed;
+        }
+
+        .boton-cancelar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4d4d; 
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px; 
+        }
+        
+        .boton-cancelar:hover {
+            background-color: #e60000; 
         }
         
     </style>
@@ -204,6 +221,7 @@
                     <button type="submit" id="guardar" class="boton-guardar" >Guardar</button>
                     <button type="button" id="servicios-extra" class="boton-servicios">Servicios Extra</button>
                     <button type="button" id="pagar-habitacion" class="boton-pago">Pagar</button>
+                    <button type="button" id="cancelar" class="boton-cancelar"><i class="fas fa-trash-alt"></i></button>
   
         </section>        
     </div>
@@ -335,6 +353,10 @@
         });
     </script>
     
+    
+
+
+
    <!-- Para llamar los datos -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -353,7 +375,11 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
-                            alert(data.error);
+                            if (data.error.includes('inactiva')) {
+                                alert('La reserva está inactiva. No se pueden consultar los datos.');
+                            } else {
+                                alert(data.error);  
+                            }
                         } else {
                             document.getElementById('nombre-cliente').value = data.nombre_cliente;
                             document.getElementById('cedula-cliente').value = data.cedula;
@@ -367,12 +393,9 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Error al consultar la reserva:', error);
-                        alert('Hubo un error al realizar la consulta.');
                     });
             }
         
-            // Escuchar el evento Enter en los campos de nombre o cédula
             nombreInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault();
@@ -387,9 +410,79 @@
                 }
             });
         });
+        
         </script>
         
-    
+
+
+   <!-- Para cancelar -->
+        <script>
+            document.getElementById('cancelar').addEventListener('click', function() {
+                const nombreCliente = document.getElementById('nombre-cliente').value;
+                const fechaSalida = document.getElementById('fecha-salida').value;
+            
+                if (nombreCliente && fechaSalida) {
+                    const formData = new FormData();
+                    formData.append('nombre_cliente', nombreCliente);
+                    formData.append('fecha_salida', fechaSalida);
+            
+                    fetch("{% url 'cancelar_reserva' %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'inactiva') {
+                            alert(data.mensaje);  
+                        } else if (data.status === 'no_reserva') {
+                            alert(data.mensaje);  
+                            document.getElementById('reserva-form').reset();
+                            document.getElementById('consulta-habitaciones-form').reset();
+                        }
+                        
+                        location.reload(); 
+                    })
+                    .catch(error => {
+                 
+                    });
+                } else {
+                    location.reload();  
+                }
+            });
+            
+        </script>
+        
+        
+
+
+            <!-- Para Las fechas  -->
+        <script>
+            document.getElementById('guardar').addEventListener('click', function(event) {
+                event.preventDefault();  
+                
+                fetch("{% url 'updatesalida' %}", {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.actualizadas > 0) {
+                        console.log(`${data.actualizadas} reservas actualizadas a 'Inactiva'`);
+                    } else {
+                        console.log("No hay reservas para actualizar");
+                    }
+        
+                    location.reload();  
+                })
+                .catch(error => console.error("Error:", error));
+            });
+            
+        </script>
     
 
 

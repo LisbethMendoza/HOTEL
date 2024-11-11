@@ -1,5 +1,15 @@
 from django.shortcuts import render, redirect
 from .models import Usuario
+from reserva.models import Reserva
+from django.http import JsonResponse
+from django.utils import timezone
+
+
+def updatesalida(request):
+    today = timezone.now().date() 
+    reservas_actualizadas = Reserva.objects.filter(fecha_salida__lte=today, estado="Activa").update(estado="Inactiva")
+    return JsonResponse({'actualizadas': reservas_actualizadas})
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -21,8 +31,6 @@ def login_view(request):
             return render(request, 'Login.html', {'error': error})
 
     return render(request, 'Login.html')
-
-
 
 
 

@@ -89,5 +89,32 @@
         <br>
         <button type="submit">Iniciar Sesión</button>
     </form>
+
+
+
+        <script>
+            document.querySelector('form').addEventListener('submit', function(event) {
+                event.preventDefault(); 
+                fetch("{% url 'updatesalida' %}", {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.actualizadas > 0) {
+                        console.log(`${data.actualizadas} reservas actualizadas a 'Inactiva'`);
+                    } else {
+                        console.log("No hay reservas para actualizar");
+                    }
+    
+                    event.target.submit();
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        </script>
+        
+
 </body>
 </html>
